@@ -77,32 +77,20 @@ public class UserService {
         return buildAuthResponse(savedUser, token, refreshToken);
     }
 
-/* Generate Referesh Token
-Used To get a new Access token when it expires
-Server validates and returns new access Token
-Client Sends referesh token to /auth/referesh endpoint
-* */
+    /* Generate Referesh Token
+    Used To get a new Access token when it expires
+    Server validates and returns new access Token
+    Client Sends referesh token to /auth/referesh endpoint
+    * */
     private String generateRefereshToken(String id) {
-        return Jwts.builder()
-                .claim("Userid" , id).
-                setSubject(id).
-                setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+jwtExpiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                .compact();
+        return Jwts.builder().claim("Userid", id).setSubject(id).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + jwtExpiration)).signWith(getSignInKey(), SignatureAlgorithm.HS256).compact();
     }
 
 
     //Generates AccessTokern
     private String generateAccessToken(String id, String email) {
 
-        return Jwts.builder()
-                .claim("Userid" , id).
-                setSubject(email).
-                setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+jwtExpiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                .compact();
+        return Jwts.builder().claim("Userid", id).setSubject(email).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + jwtExpiration)).signWith(getSignInKey(), SignatureAlgorithm.HS256).compact();
 
     }
 
@@ -125,17 +113,77 @@ Client Sends referesh token to /auth/referesh endpoint
 
 
     public AuthResponse login(@Valid LoginRequest request) {
+
+        log.info("logging attempt : {}", request.getEmail());
+
+        User user = userRepository.findByEnmail(request.getEmail()).orElseThrow(() -> new RuntimeException("User not found with email : " + request.getEmail()));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid Credentials");
+        }
+        log.info("login Successful : {}", user.getId());
+
+        String token = generateAccessToken(user.getId(), user.getEmail());
+
+        String refreshToken = generateRefereshToken(user.getId());
+
+        return buildAuthResponse(user, token, refreshToken);
+
+
     }
 
-    public UserResponse getUserById(String userId) {
+
+    //To Map User Entity to UserResponse Dto
+    public UserResponse mapToUserResponse(User user) {
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId(user.getId());
+        userResponse.setEmail(user.getEmail());
+        userResponse.setFirstName(user.getFirstName());
+        userResponse.setLastName(user.getLastName());
+        userResponse.setWalletBalance(user.getWalletBalance());
+        return userResponse;
     }
+
+    //To Get USer By UID
+    /*
+    Called By other services by feign client
+    @param User Id
+    @return UserResponse
+     */
+    public UserResponse getUserById(String userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id : " + userId));
+        return mapToUserResponse(user);
+    }
+
 
     public UserResponse addFunds(String userId, BigDecimal amount) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id : " + userId));
+
+        user.setWalletBalance(user.getWalletBalance().add(amount));
+        User savedUser= userRepository.save(user);
+        log.info(" funds added :{} successfully : {}",savedUser.getId(), savedUser.getWalletBalance() );
+        return mapToUserResponse(savedUser);
     }
 
     public UserResponse deductFunds(String userId, BigDecimal amount) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id : " + userId));
+        if(user.getWalletBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient Balance");
+        }
+        user.setWalletBalance(user.getWalletBalance().subtract(amount));
+        User savedUser= userRepository.save(user);
+        log.info(" funds deducted :{} successfully : {}",user.getId(), savedUser.getWalletBalance() );
+
+        return mapToUserResponse(savedUser);
     }
 
     public UserResponse creditFunds(String userId, BigDecimal amount) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id : " + userId));
+
+        user.setWalletBalance(user.getWalletBalance().add(amount));
+       User savedUser= userRepository.save(user);
+        log.info(" funds Credited :{} successfully : {}",savedUser.getId(), savedUser.getWalletBalance() );
+        return mapToUserResponse(savedUser);
     }
 }
