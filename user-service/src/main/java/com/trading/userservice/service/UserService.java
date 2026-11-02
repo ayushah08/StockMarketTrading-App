@@ -54,7 +54,7 @@ public class UserService {
             throw new RuntimeException("Email already registered " + request.getEmail());
         }
 
-        User user = User.builder().email(request.getEmail()).password(passwordEncoder.encode(request.getPassword())).firstName(request.getFirstName()).lastName(request.getLastName()).walletBalance(request.getWalletBalance() != null ? request.getWalletBalance() : BigDecimal.valueOf(10000)).build()
+        User user = User.builder().email(request.getEmail()).password(passwordEncoder.encode(request.getPassword())).firstName(request.getFirstName()).lastName(request.getLastName()).walletBalance(request.getWalletBalance() != null ? request.getWalletBalance() : BigDecimal.valueOf(10000)).build();
 
         User savedUser = userRepository.save(user);
         log.info("User Registered  : {}", savedUser);
