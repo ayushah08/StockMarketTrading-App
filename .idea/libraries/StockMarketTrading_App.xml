@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="StockMarketTrading-App">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/notification-service.zip!/" />
+      <root url="jar://$PROJECT_DIR$/market-data-service.zip!/" />
+      <root url="jar://$PROJECT_DIR$/order-service.zip!/" />
+      <root url="jar://$PROJECT_DIR$/api-gaeway.zip!/" />
+      <root url="jar://$PROJECT_DIR$/portfolio-service.zip!/" />
+      <root url="jar://$PROJECT_DIR$/user-service.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
