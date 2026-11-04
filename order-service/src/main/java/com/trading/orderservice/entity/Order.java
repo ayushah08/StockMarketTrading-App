@@ -3,12 +3,15 @@ package com.trading.orderservice.entity;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 @Table(name = "orders")
 @AllArgsConstructor
 @NoArgsConstructor
